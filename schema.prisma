@@ -1,0 +1,149 @@
+generator client {
+  provider             = "prisma-client-py"
+  interface            = "asyncio"
+  recursive_type_depth = 5
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = "mongodb+srv://connor:pU6aCSwpWaBPnGdu@youni.ys7upsi.mongodb.net/dev?retryWrites=true&w=majority"
+}
+
+model User {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  clerkId String @unique
+
+  firstName String
+  lastName String
+
+  upgraded Boolean @default(false)
+  admin Boolean @default(false)
+
+  company Company? @relation(fields: [companyId], references: [id])
+  companyId String? @db.ObjectId
+
+  courses Course[] @relation("teacher")
+  coursesIds String[] @db.ObjectId
+
+  enrollments Course[] @relation("enrollments", fields: [enrollmentsIds], references: [id])
+  enrollmentsIds String[] @db.ObjectId
+
+  endorsements Endorsement[] @relation("createdBy")
+  endorsementsIds String[] @db.ObjectId
+
+  companyApplications CompanyApplication[]
+  companyApplicationsIds String[] @db.ObjectId
+
+  title String @default("")
+  aboutMe String @default("No description")
+  organization String @default("")
+
+  createdAt  DateTime   @default(now())
+}
+
+model Course {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  name String
+  description String?
+  price Float @default(0)
+
+  startDate DateTime
+  endDate DateTime
+  meetingDays String?
+  maxStudents Int
+  numStudents Int @default(0)
+
+  skills  Skill[] @relation(fields: [skillsIds], references: [id])
+  skillsIds String[]   @db.ObjectId
+
+  meetingUrl String
+  chatUrl String
+
+  marketplace Boolean? @default(true)
+  registrationOpen Boolean @default(false)
+  started Boolean @default(false)
+
+  image Int @default(1)
+
+  teacher User @relation("teacher", fields: [teacherId], references:[id])
+  teacherId String @db.ObjectId
+
+  students User[] @relation("enrollments", fields: [studentsIds], references: [id])
+  studentsIds String[] @db.ObjectId
+
+  endorsements Endorsement[] @relation("course")
+  endorsementsIds String[] @db.ObjectId
+
+  sections CourseSection[]
+  sectionsIds String[] @db.ObjectId
+
+  createdAt  DateTime   @default(now())
+}
+
+model Skill {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  url String
+  name String
+  author String
+  skillStatement String
+  category String
+  keywords String[] 
+  alignmentName String
+
+  courses Course[] @relation(fields: [coursesIds], references: [id])
+  coursesIds String[] @db.ObjectId
+}
+
+model Company {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  name String
+  description String?
+  image String?
+
+  members User[]
+  membersIds String[] @db.ObjectId
+
+  endorsements Endorsement[] @relation("company")
+  endorsementsIds String[] @db.ObjectId
+
+  createdAt DateTime @default(now())
+}
+
+model Endorsement {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  course Course @relation("course", fields:[courseId], references: [id])
+  courseId String @db.ObjectId
+
+  company Company @relation("company", fields: [companyId], references: [id])
+  companyId String @db.ObjectId
+
+  createdBy User @relation("createdBy", fields: [createdById], references: [id])
+  createdById String @db.ObjectId
+
+  createdAt DateTime @default(now())
+}
+
+model CompanyApplication {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  user User @relation(fields:[userId], references: [id])
+  userId String @db.ObjectId
+
+  companyName String
+
+  createdAt DateTime @default(now())
+}
+
+model CourseSection {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  header String
+  body String
+
+  course Course @relation(fields:[courseId], references: [id])
+  courseId String @db.ObjectId
+}
